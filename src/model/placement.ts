@@ -9,12 +9,17 @@ export type Rect = { minX: number; maxX: number; minZ: number; maxZ: number };
 export const GRID_STEP = 0.1;
 const EPS = 0.004;
 
-/** Zemin izi (genişlik × derinlik, yerel x × z). Spot zeminde değildir → null. */
-export const FOOTPRINTS: Record<ItemKind, { w: number; d: number } | null> = {
+/**
+ * Zemin izi (genişlik × derinlik, yerel x × z). Spot zeminde değildir → null.
+ * round: iz w çaplı dairedir — döndürmek kapladığı alanı değiştirmez, çarpışma daire olarak hesaplanır.
+ */
+export type Footprint = { w: number; d: number; round?: boolean };
+export const FOOTPRINTS: Record<ItemKind, Footprint | null> = {
   spot: null,
   bin: { w: 0.28, d: 0.28 },
   'power-strip': { w: 0.34, d: 0.07 },
-  'table-set': { w: 1.6, d: 1.6 },
+  // Ø60 bistro masa + masaya yanaşık 3 sandalye: sandalye sırtlıkları dahil toplam Ø1.2 m
+  'table-set': { w: 1.2, d: 1.2, round: true },
   'brochure-stand': { w: 0.32, d: 0.36 },
   lightbox: { w: ELEMENT_SIZES.lightbox.width, d: 0.32 },
   desk: { w: ELEMENT_SIZES.desk.width + 0.02, d: ELEMENT_SIZES.desk.depth + 0.02 },
@@ -35,10 +40,14 @@ export const isElementKind = (k: ItemKind): k is StandElementKind => k === 'ligh
 export const snapStep = (v: number) => Math.round(v / GRID_STEP) * GRID_STEP;
 export const normDeg = (d: number) => ((Math.round(d) % 360) + 360) % 360;
 
-/** Döndürülmüş izin eksen hizalı sınır kutusu. */
+/** Döndürülmüş izin eksen hizalı sınır kutusu (yuvarlak izde dönüşten bağımsız). */
 export function footprintRect(kind: ItemKind, pos: Vec2, rotationDeg: number): Rect | null {
   const f = FOOTPRINTS[kind];
   if (!f) return null;
+  if (f.round) {
+    const r = f.w / 2;
+    return { minX: pos.x - r, maxX: pos.x + r, minZ: pos.z - r, maxZ: pos.z + r };
+  }
   const a = (rotationDeg * Math.PI) / 180;
   const c = Math.abs(Math.cos(a));
   const s = Math.abs(Math.sin(a));
@@ -47,8 +56,33 @@ export function footprintRect(kind: ItemKind, pos: Vec2, rotationDeg: number): R
   return { minX: pos.x - hw, maxX: pos.x + hw, minZ: pos.z - hd, maxZ: pos.z + hd };
 }
 
-const overlaps = (a: Rect, b: Rect) =>
+/** Çarpışma şekli: dikdörtgen (eksen hizalı) ya da daire (yuvarlak iz). */
+export type Shape = { rect: Rect } | { circle: { x: number; z: number; r: number } };
+
+const rectsOverlap = (a: Rect, b: Rect) =>
   a.minX < b.maxX - EPS && a.maxX > b.minX + EPS && a.minZ < b.maxZ - EPS && a.maxZ > b.minZ + EPS;
+
+/** Daire ile dikdörtgen: dikdörtgendeki en yakın noktanın merkeze uzaklığı yarıçaptan küçükse çakışır. */
+function circleRectOverlap(c: { x: number; z: number; r: number }, b: Rect) {
+  const nx = Math.min(Math.max(c.x, b.minX), b.maxX);
+  const nz = Math.min(Math.max(c.z, b.minZ), b.maxZ);
+  return Math.hypot(c.x - nx, c.z - nz) < c.r - EPS;
+}
+
+function shapesOverlap(a: Shape, b: Shape): boolean {
+  if ('rect' in a) return 'rect' in b ? rectsOverlap(a.rect, b.rect) : circleRectOverlap(b.circle, a.rect);
+  if ('rect' in b) return circleRectOverlap(a.circle, b.rect);
+  return Math.hypot(a.circle.x - b.circle.x, a.circle.z - b.circle.z) < a.circle.r + b.circle.r - EPS;
+}
+
+/** Ekipmanın çarpışma şekli: yuvarlak izde daire, diğerlerinde döndürülmüş izin sınır kutusu. */
+export function footprintShape(kind: ItemKind, pos: Vec2, rotationDeg: number): Shape | null {
+  const f = FOOTPRINTS[kind];
+  if (!f) return null;
+  if (f.round) return { circle: { x: pos.x, z: pos.z, r: f.w / 2 } };
+  const rect = footprintRect(kind, pos, rotationDeg);
+  return rect ? { rect } : null;
+}
 
 function edgeRect(e: Edge, halfThickness: number): Rect {
   const [[x0, z0], [x1, z1]] = edgeEnds(e);
@@ -61,16 +95,16 @@ function edgeRect(e: Edge, halfThickness: number): Rect {
 }
 
 /** Duvarlar, dikmeler ve (hariç tutulanlar dışındaki) zemin ekipmanları. */
-export function obstacleRects(design: StandDesign, excludeIds: Set<string>): Rect[] {
-  const rects: Rect[] = design.walls.map((w) => edgeRect(w.edge, POST_SIZE / 2));
+export function obstacleShapes(design: StandDesign, excludeIds: Set<string>): Shape[] {
+  const shapes: Shape[] = design.walls.map((w) => ({ rect: edgeRect(w.edge, POST_SIZE / 2) }));
   for (const [x, z] of derivePosts(design))
-    rects.push({ minX: x - POST_SIZE / 2, maxX: x + POST_SIZE / 2, minZ: z - POST_SIZE / 2, maxZ: z + POST_SIZE / 2 });
+    shapes.push({ rect: { minX: x - POST_SIZE / 2, maxX: x + POST_SIZE / 2, minZ: z - POST_SIZE / 2, maxZ: z + POST_SIZE / 2 } });
   for (const item of [...design.accessories, ...design.elements]) {
     if (excludeIds.has(item.id)) continue;
-    const r = footprintRect(item.kind, item.position, item.rotationDeg);
-    if (r) rects.push(r);
+    const shape = footprintShape(item.kind, item.position, item.rotationDeg);
+    if (shape) shapes.push(shape);
   }
-  return rects;
+  return shapes;
 }
 
 /** Zemin ekipmanı bu konumda durabilir mi: sahne içinde ve hiçbir engelle çakışmıyor. */
@@ -82,10 +116,11 @@ export function placementValid(
   excludeIds: Set<string> = new Set(),
 ): boolean {
   const r = footprintRect(kind, pos, rotationDeg);
-  if (!r) return true;
+  const shape = footprintShape(kind, pos, rotationDeg);
+  if (!r || !shape) return true;
   const b = sceneBounds(design.scene);
   if (r.minX < b.minX || r.maxX > b.maxX || r.minZ < b.minZ || r.maxZ > b.maxZ) return false;
-  return !obstacleRects(design, excludeIds).some((o) => overlaps(r, o));
+  return !obstacleShapes(design, excludeIds).some((o) => shapesOverlap(shape, o));
 }
 
 /**

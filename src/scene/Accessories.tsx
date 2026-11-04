@@ -139,12 +139,15 @@ function Chair() {
   );
 }
 
-/** Yuvarlak masa (r 0.4, h 0.75) + çevresinde masaya dönük 3 sandalye. */
+/**
+ * Fuar bistro takımı: Ø60 masa (h 0.75) + masaya yanaşık 3 sandalye; toplam Ø1.2 m (placement.ts FOOTPRINTS).
+ * Sandalye merkezi 0.35 m'de → oturak masanın altına girer, sırtlık köşeleri 0.6 m yarıçapın içinde kalır.
+ */
 function TableSet() {
-  const r = 0.4;
+  const r = 0.3;
   const h = 0.75;
   const top = 0.025;
-  const chairR = 0.68;
+  const chairR = 0.35;
   return (
     <group position={[0, CARPET_THICKNESS, 0]}>
       <mesh position={[0, h - top / 2, 0]} material={whitePlastic} castShadow receiveShadow>
@@ -154,7 +157,7 @@ function TableSet() {
         <cylinderGeometry args={[0.03, 0.03, h - top, 16]} />
       </mesh>
       <mesh position={[0, 0.01, 0]} material={chromeLeg} castShadow receiveShadow>
-        <cylinderGeometry args={[0.24, 0.26, 0.02, 32]} />
+        <cylinderGeometry args={[0.18, 0.2, 0.02, 32]} />
       </mesh>
       {[0, 1, 2].map((i) => {
         const a = (i * 2 * Math.PI) / 3;

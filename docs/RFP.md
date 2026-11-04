@@ -1,6 +1,6 @@
 # Stand Designer — RFP (Teklif Talebi / Gereksinim Dokümanı)
 
-> Sürüm: 1.4 · Tarih: 04.11.2026 · Durum: MVP geliştirildi (Faz 0–5) — bkz. §14
+> Sürüm: 1.5 · Tarih: 04.11.2026 · Durum: MVP geliştirildi (Faz 0–5) — bkz. §14
 
 ---
 
@@ -113,7 +113,7 @@ Hedef çıktı: Referans görseldeki gibi (`docs/referans.jpg`) — beyaz modül
   | Spot lamba (kol tipi) | Duvar üst kenarı / alın panosu üzerine takılır, ışık yayar |
   | Çöp kovası | Zemine (halı üstüne) |
   | Grup priz | Zemine, duvar dibine |
-  | Masa + 3 sandalye | Zemine |
+  | Masa + 3 sandalye | Zemine; Ø60 masa, sandalyeler masaya yanaşık, toplam Ø1.2 m yuvarlak iz (döndürmek alanı büyütmez) |
   | Broşürlük | Zemine |
 
 - **FR-7.3** Zemin aksesuarları 0.1 m adımlarla serbest konumlanır ve 90° (Shift ile 15°) döndürülebilir.
@@ -348,6 +348,7 @@ Tüm yapı elemanları tam sayı grid koordinatlarında tutulur → ölçü hata
 | K20 | Görseller (JPG/PNG) toplu yüklenen bir kütüphanede tutulur; bir görsel birden çok çerçevede kullanılabilir | 04.11.2026 |
 | K21 | Boş çerçeve editörde görünür, export'ta gizlenir | 04.11.2026 |
 | K22 | Lightbox/desk ön yüzü de aynı yöntemle (kütüphaneden sürükle-bırak) giydirilir | 04.11.2026 |
+| K23 | Masa + 3 sandalye: Ø60 masa, toplam Ø1.2 m; çarpışma yuvarlak iz ile, sandalyeler duvara sıfır mesafe yanaşabilir | 04.11.2026 |
 
 ## 13. Açık Sorular
 

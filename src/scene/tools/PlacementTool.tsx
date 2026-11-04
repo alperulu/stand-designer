@@ -95,7 +95,7 @@ function FloorGhost({ kind, valid }: { kind: ItemKind; valid: boolean }) {
   return (
     <group position={[0, CARPET_THICKNESS, 0]}>
       <mesh position={[0, h / 2, 0]} renderOrder={10} raycast={noRaycast}>
-        <boxGeometry args={[f.w, h, f.d]} />
+        {f.round ? <cylinderGeometry args={[f.w / 2, f.w / 2, h, 48]} /> : <boxGeometry args={[f.w, h, f.d]} />}
         <meshBasicMaterial color={color} transparent opacity={0.35} depthWrite={false} />
       </mesh>
       {/* Ön yüz şeridi */}

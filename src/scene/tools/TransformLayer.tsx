@@ -308,7 +308,7 @@ function ItemHighlight({
       </mesh>
       {selected && fp && (
         <mesh position={[0, FLOOR_Y, 0]} rotation={[-Math.PI / 2, 0, 0]} raycast={noRaycast} renderOrder={5}>
-          <planeGeometry args={[fp.w, fp.d]} />
+          {fp.round ? <circleGeometry args={[fp.w / 2, 48]} /> : <planeGeometry args={[fp.w, fp.d]} />}
           <meshBasicMaterial
             color={color}
             transparent
@@ -324,7 +324,7 @@ function ItemHighlight({
 
 function RotationRing({ id, kind, position, rotationDeg }: { id: string; kind: ItemKind; position: Vec2; rotationDeg: number }) {
   const fp = FOOTPRINTS[kind];
-  const radius = fp ? Math.hypot(fp.w, fp.d) / 2 + 0.15 : 0.5;
+  const radius = fp ? (fp.round ? fp.w / 2 : Math.hypot(fp.w, fp.d) / 2) + 0.15 : 0.5;
   const [hover, setHover] = useState(false);
   const dragMode = useTransformUi((s) => s.dragMode);
   const rotating = dragMode === 'rotate';
