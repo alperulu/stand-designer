@@ -321,6 +321,7 @@ export function FasciaTool() {
             position={[(press.start.x + end.x) / 2, wallHeight + 0.25, (press.start.z + end.z) / 2]}
             center
             pointerEvents="none"
+            style={{ pointerEvents: 'none' }}
             zIndexRange={[20, 0]}
           >
             <div

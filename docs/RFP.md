@@ -1,6 +1,6 @@
 # Stand Designer — RFP (Teklif Talebi / Gereksinim Dokümanı)
 
-> Sürüm: 1.5 · Tarih: 04.11.2026 · Durum: MVP geliştirildi (Faz 0–5) — bkz. §14
+> Sürüm: 1.6 · Tarih: 04.11.2026 · Durum: MVP geliştirildi (Faz 0–5) — bkz. §14
 
 ---
 
@@ -82,10 +82,11 @@ Hedef çıktı: Referans görseldeki gibi (`docs/referans.jpg`) — beyaz modül
 - **FR-5.1** Seçili panel(ler)in rengi değiştirilebilir: hazır palet + serbest renk seçici (HEX).
 - **FR-5.2** Panelin **iç veya dış yüzüne** ayrı ayrı renk/grafik uygulanabilir.
 - **FR-5.3** **Giydirme iki adımda yapılır** (v1.4):
-  1. **Çerçeve:** "Giydirme" aracıyla (`K`) duvar boyunca sürüklenerek boş bir **giydirme çerçevesi** çizilir; çerçeve kameranın baktığı yüze (iç/dış) yerleşir. Alternatif: panelleri seçip "Seçili panellere çerçeve oluştur".
+  1. **Çerçeve:** "Giydirme" aracıyla (`K`) duvar **yüzeyinde panelden panele sürüklenerek** boş bir **giydirme çerçevesi** çizilir (tek panel için tıklanır); çerçeve tıklanan yüze (iç/dış) yerleşir. Alternatif: panelleri seçip "Seçili panellere çerçeve oluştur".
   2. **Görsel:** JPG/PNG görseller **görsel kütüphanesine** (toplu) yüklenir; kütüphaneden küçük resim sahnedeki çerçeveye **sürükle-bırak** ile yerleştirilir (ya da çerçeve seçiliyken küçük resme tıklanır / çerçeve panelinden doğrudan yüklenir).
 - **FR-5.3a** Boş çerçeve editörde kesikli çizgi + ölçü etiketiyle ("3 m × 2.3 m · 3000 × 2300 px") görünür, **export'ta gizlenir**.
 - **FR-5.3b** Aynı görsel birden çok çerçevede/elemanda kullanılabilir; kütüphaneden silinen görselin çerçeveleri boş kalır.
+- **FR-5.3c** **Çerçeve birleştirme:** Aynı duvar hizasında ve aynı yüzdeki çerçeveler Shift ile seçilip "Çerçeveleri birleştir" ile tek çerçeve yapılır (aradaki düz paneller dahil; kapılı panel/boşluk varsa reddedilir). Mevcut çerçevelerin üstünden yeni çerçeve çizmek de onları birleştirir. Her iki durumda ilk görsel ve yerleşimi korunur.
 - **FR-5.4** Bir çerçeve **birden fazla bitişik panele yayılabilir** (ör. 3 m'lik arka duvar boyunca tek büyük grafik); aynı hizadaki ve aynı yüzdeki paneller.
 - **FR-5.4a** **Grafik alanı yüksekliği:**
   - **2.5 m duvar:** grafik **2.3 m** yüksekliğindedir, alttan başlar; **üstte 20 cm** panel renginde boş şerit kalır (aydınlatma spotlarının takıldığı bölge).
@@ -349,6 +350,7 @@ Tüm yapı elemanları tam sayı grid koordinatlarında tutulur → ölçü hata
 | K21 | Boş çerçeve editörde görünür, export'ta gizlenir | 04.11.2026 |
 | K22 | Lightbox/desk ön yüzü de aynı yöntemle (kütüphaneden sürükle-bırak) giydirilir | 04.11.2026 |
 | K23 | Masa + 3 sandalye: Ø60 masa, toplam Ø1.2 m; çarpışma yuvarlak iz ile, sandalyeler duvara sıfır mesafe yanaşabilir | 04.11.2026 |
+| K24 | Giydirme çerçevesi duvar yüzeyinde sürüklenerek çizilir; yan yana çerçeveler birleştirilebilir, görsel korunur | 04.11.2026 |
 
 ## 13. Açık Sorular
 

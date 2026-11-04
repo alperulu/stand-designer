@@ -145,6 +145,11 @@ type EditorState = {
    * Paneller validateGraphicPanels kuralına uymalı.
    */
   addFrame: (panelIds: string[], face: 'inner' | 'outer') => { ok: true; id: string } | { ok: false; reason: string };
+  /**
+   * Yan yana çerçeveleri tek çerçevede birleştirir (aynı yüz, aynı duvar hizası, aradaki paneller düz ve kesintisiz).
+   * Görsel ve yerleşim ilk görselli çerçeveden (verilen sırayla) alınır. Birleşik çerçeve seçilir.
+   */
+  mergeFrames: (frameIds: string[]) => { ok: true; id: string } | { ok: false; reason: string };
   /** Çerçeve(ler)e kütüphaneden görsel atar; undefined → görseli kaldırır (çerçeve kalır). */
   setFrameImage: (frameIds: string[], imageId: string | undefined) => void;
   setGraphicFit: (id: string, fit: GraphicFit) => void;
@@ -363,11 +368,63 @@ export const useEditor = create<EditorState>()((set, get) => {
       const check = validateGraphicPanels(design, ids);
       if (!check.ok) return check;
       const taken = new Set(check.panelIds);
-      const graphics = design.graphics.filter((g) => g.face !== face || !g.panelIds.some((id) => taken.has(id)));
-      const frame: Graphic = { id: newId('g'), panelIds: check.panelIds, face, fit: 'cover' };
-      commit({ ...design, graphics: [...graphics, frame] });
+      const overlaps = (g: Graphic) => g.face === face && g.panelIds.some((id) => taken.has(id));
+      // Üzerine çizilen çerçevelerin görseli kaybolmasın: ilk görselli olanınkini devral
+      const inherited = design.graphics.find((g) => overlaps(g) && g.imageId);
+      const frame: Graphic = {
+        id: newId('g'),
+        panelIds: check.panelIds,
+        face,
+        fit: inherited?.fit ?? 'cover',
+        imageId: inherited?.imageId,
+      };
+      commit({ ...design, graphics: [...design.graphics.filter((g) => !overlaps(g)), frame] });
       set({ selection: [frame.id] });
       return { ok: true, id: frame.id };
+    },
+
+    mergeFrames: (frameIds) => {
+      const { design } = get();
+      const frames = frameIds
+        .map((id) => design.graphics.find((g) => g.id === id))
+        .filter((g): g is Graphic => !!g);
+      if (frames.length < 2) return { ok: false, reason: 'Birleştirmek için en az iki çerçeve seçin.' };
+      const face = frames[0].face;
+      if (frames.some((f) => f.face !== face))
+        return { ok: false, reason: 'Çerçeveler aynı yüzde (iç ya da dış) olmalı.' };
+      // Çerçeveler arasında kalan düz paneller de birleşik çerçeveye girer; kapı/boşluk varsa reddedilir
+      const panels = frames.flatMap((f) => f.panelIds).map((id) => design.walls.find((w) => w.id === id)).filter((w): w is WallPanel => !!w);
+      if (!panels.length) return { ok: false, reason: 'Çerçevelerin panelleri bulunamadı.' };
+      const { axis } = panels[0].edge;
+      const line = (w: WallPanel) => (axis === 'x' ? w.edge.z : w.edge.x);
+      const along = (w: WallPanel) => (axis === 'x' ? w.edge.x : w.edge.z);
+      if (panels.some((w) => w.edge.axis !== axis || line(w) !== line(panels[0])))
+        return { ok: false, reason: 'Çerçeveler aynı duvar hizasında olmalı.' };
+      const from = Math.min(...panels.map(along));
+      const to = Math.max(...panels.map(along));
+      const span = design.walls.filter(
+        (w) => w.edge.axis === axis && line(w) === line(panels[0]) && along(w) >= from && along(w) <= to,
+      );
+      const check = validateGraphicPanels(design, span.map((w) => w.id));
+      if (!check.ok) return check;
+      if (check.panelIds.length !== to - from + 1)
+        return { ok: false, reason: 'Çerçeveler arasında duvarsız kenar var; birleştirilemez.' };
+      const withImage = frames.find((f) => f.imageId);
+      const merged: Graphic = {
+        id: newId('g'),
+        panelIds: check.panelIds,
+        face,
+        fit: (withImage ?? frames[0]).fit,
+        imageId: withImage?.imageId,
+      };
+      const taken = new Set(check.panelIds);
+      const drop = new Set(frames.map((f) => f.id));
+      const graphics = design.graphics.filter(
+        (g) => !drop.has(g.id) && !(g.face === face && g.panelIds.some((id) => taken.has(id))),
+      );
+      commit({ ...design, graphics: [...graphics, merged] });
+      set({ selection: [merged.id] });
+      return { ok: true, id: merged.id };
     },
 
     setFrameImage: (frameIds, imageId) => {

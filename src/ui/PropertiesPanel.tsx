@@ -66,8 +66,9 @@ const TOOL_HELP: Record<Tool, { title: string; lines: string[] }> = {
   graphic: {
     title: 'Giydirme',
     lines: [
-      'Duvar boyunca sürükle: giydirme çerçevesi çiz.',
-      'Çerçeve, kameranın baktığı yüze yerleşir.',
+      'Duvar yüzeyinde panelden panele sürükle: çok panelli çerçeve.',
+      'Tek panele tıkla: 1 panellik çerçeve. Tıkladığın yüze yerleşir.',
+      'Mevcut çerçevelerin üstünden çiz ya da Shift ile seçip birleştir: görsel korunur.',
       'Görseli kütüphaneden çerçeveye sürükle.',
       ...CAMERA_LINES,
     ],
@@ -338,6 +339,10 @@ function FrameSection() {
   const setGraphicFit = useEditor((s) => s.setGraphicFit);
   const select = useEditor((s) => s.select);
   const removeEntities = useEditor((s) => s.removeEntities);
+  const mergeFrames = useEditor((s) => s.mergeFrames);
+  const [mergeError, setMergeError] = useState<string | null>(null);
+  const selectionKey = selection.join(',');
+  useEffect(() => setMergeError(null), [selectionKey]);
 
   const frames = useMemo(() => {
     const ids = new Set(selection);
@@ -386,6 +391,26 @@ function FrameSection() {
         onRemove={() => setFrameImage(ids, undefined)}
       />
       <p className="field-hint">Boş çerçeve editörde görünür, dışa aktarımda gizlenir.</p>
+      {!single && (
+        <>
+          <button
+            type="button"
+            className="block-button"
+            title="Yan yana çerçeveleri tek çerçevede birleştir; ilk görsel korunur"
+            onClick={() => {
+              const r = mergeFrames(ids);
+              if (!r.ok) setMergeError(r.reason);
+            }}
+          >
+            <span>Çerçeveleri birleştir</span>
+          </button>
+          {mergeError && (
+            <p className="field-error" role="alert">
+              {mergeError}
+            </p>
+          )}
+        </>
+      )}
       <button
         type="button"
         className="block-button"
@@ -446,7 +471,9 @@ function PanelFrameControls({ panels }: { panels: WallPanel[] }) {
       <button type="button" className="upload-button" disabled={!check.ok} onClick={create}>
         Seçili panellere çerçeve oluştur
       </button>
-      {check.ok && replaces && <p className="field-hint">Bu yüzdeki çakışan çerçeve yenisiyle değiştirilir.</p>}
+      {check.ok && replaces && (
+        <p className="field-hint">Bu yüzdeki çakışan çerçeveler yenisiyle birleşir; görseli korunur.</p>
+      )}
       {error && (
         <p className="field-error" role="alert">
           {error}

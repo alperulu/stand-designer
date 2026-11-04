@@ -150,7 +150,8 @@ function FrameLabel({ width, height }: { width: number; height: number }) {
   });
   return (
     <group ref={anchor} position={[0, height / 2, 0.012]}>
-      <Html center distanceFactor={8} pointerEvents="none" zIndexRange={[1, 0]}>
+      {/* drei pointerEvents'i yalnızca transform modunda uygular → style ile de kapatılır, etiket tıklamayı yutmasın */}
+      <Html center distanceFactor={8} pointerEvents="none" style={{ pointerEvents: 'none' }} zIndexRange={[1, 0]}>
         <div
           ref={box}
           style={{
@@ -331,6 +332,8 @@ export function Walls({ design }: { design: StandDesign }) {
             key={panel.id}
             position={[x, 0, z]}
             rotation={[0, edgeRotation(panel.edge), 0]}
+            // Işın isabetini panele eşlemek için (giydirme aracı yüzey seçimi)
+            userData={{ panelId: panel.id }}
             // Seçim aracı dışında olay bağlanmaz → çizim araçlarının seçim düzlemine ulaşır.
             onClick={interactive ? onClick(panel.id) : undefined}
             onPointerOver={interactive ? onOver(panel.id) : undefined}

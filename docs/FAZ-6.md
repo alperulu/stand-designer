@@ -3,7 +3,7 @@
 > Tarih: 04.11.2026 · RFP v1.4, kararlar K19–K22
 
 ## Akış
-1. **Çerçeve çiz:** "Giydirme" aracı (`K`) → duvarın dibinde köşeden köşeye sürükle (tek panel için kenara tıkla). Çerçeve kameranın baktığı yüze (iç/dış) yerleşir. Kapılı panel, duvarsız kenar veya iç/dış yüzü karışan dizi kırmızı görünür ve oluşturulmaz. Alternatif: panelleri seçip sağ panelde "Seçili panellere çerçeve oluştur".
+1. **Çerçeve çiz:** "Giydirme" aracı (`K`) → duvar **yüzeyinde** panelden panele sürükle (tek panel için panele tıkla); duvarın dibinde köşeden köşeye sürüklemek de çalışır. Yan yana çerçeveler Shift ile seçilip **"Çerçeveleri birleştir"** ile tek çerçeve yapılabilir; mevcut çerçevelerin üstünden çizmek de birleştirir (görsel korunur). Çerçeve tıklanan yüze (iç/dış) yerleşir; zeminden çizilirse kameranın baktığı yüze. Kapılı panel, duvarsız kenar veya iç/dış yüzü karışan dizi kırmızı görünür ve oluşturulmaz. Alternatif: panelleri seçip sağ panelde "Seçili panellere çerçeve oluştur".
 2. **Görsel yükle:** Sol paneldeki **Görseller** kütüphanesine JPG/PNG yükle (çoklu; dosyaları bu alana sürükleyip bırakmak da olur).
 3. **Yerleştir:** Küçük resmi sahnedeki çerçeveye (veya lightbox/desk ön yüzüne) sürükle-bırak. Alternatif: çerçeveyi seç → küçük resme tıkla ya da çerçeve panelinden "Görsel yükle…".
 
@@ -37,3 +37,10 @@ Kullanıcının otomatik kaydı önce `user-backup-giydirme` anahtarına yedekle
 - Çerçeve panelinden "Görsel yükle…" iki geri alma adımı oluşturur (kütüphaneye ekle + ata).
 - Birden çok çerçevede "Doldur/Sığdır" değişikliği çerçeve başına bir geri alma adımıdır.
 - Tarayıcıda test yedekleri duruyor: `user-backup-faz5` (eski), `user-backup-giydirme` (v1, bu testten önce); zararsız.
+
+## Güncelleme — çok panelli çerçeve ve birleştirme (K24)
+- Kullanıcı geri bildirimi: araç yalnızca 1 panellik çerçeve oluşturabiliyordu — araç imleci zemine indiriyordu; panel yüzeyine basınca duvarın arkasındaki zemin hedefleniyordu.
+- Giydirme aracı artık önce duvar yüzeyini hedefliyor; sürüklerken çerçeve duvar hizası boyunca panel panel uzuyor, yüz tıklanan taraftan belirleniyor. Zemin yöntemi yedek olarak duruyor.
+- `mergeFrames`: aynı yüz + aynı hiza + aradaki paneller düz ve kesintisiz; ilk görsel/yerleşim korunur; tek geri alma adımı. `addFrame` üzerine çizilen çerçevelerin görselini devralıyor.
+- Hata düzeltmesi: çerçeve ve ölçü etiketleri (drei `Html`) tıklamaları yutuyordu — drei `pointerEvents`'i yalnızca transform modunda uyguluyor; etiketlere `style.pointerEvents = 'none'` eklendi.
+- Doğrulama: birleştirme mantığı 8/8 test; tarayıcıda yüzeyde sürükleme → 2 m çerçeve, iki tek çerçeve → Shift seçim → birleştir → 2 m çerçeve, etiket üstüne tıklama → seçim. Test adımları geri alındı.

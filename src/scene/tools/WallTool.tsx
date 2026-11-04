@@ -276,6 +276,7 @@ export function WallTool() {
               position={[(drag.start.x + end.x) / 2, wallHeight + 0.25, (drag.start.z + end.z) / 2]}
               center
               pointerEvents="none"
+              style={{ pointerEvents: 'none' }}
               zIndexRange={[20, 0]}
             >
               <div
