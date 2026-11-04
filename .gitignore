@@ -1,0 +1,6 @@
+node_modules
+dist
+.DS_Store
+
+# Referans görseller telif/marka nedeniyle yalnızca yerelde tutulur
+docs/referans*.jpg
