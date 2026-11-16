@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { MAX_SCENE, MIN_SCENE, graphicHeight } from '../model/geometry';
 import { ITEM_LABELS, normDeg, placementValid } from '../model/placement';
 import type { Graphic, GraphicFit, ImageAsset, StandElement, StandElementKind, WallHeight, WallPanel } from '../model/types';
-import { imageById, useEditor, validateGraphicPanels, type DoorProps, type FaceTarget, type Tool } from '../state/store';
+import { fasciaId, imageById, useEditor, validateGraphicPanels, type DoorProps, type FaceTarget, type Tool } from '../state/store';
 import { clampSceneInput } from './helpers';
 import { UploadButton, UploadErrors, useImageUpload } from './ImageLibrary';
 import { FRONT_AREAS, isElement, isFloorItem, itemsByIds, rotationUpdates, spotDirection, type Item, type SpotDirection } from './items';
+import { SceneOutline } from './SceneOutline';
 import { MOD } from './useShortcuts';
 
 const OUTSIDE_ERROR = 'Mevcut elemanlar yeni alanın dışında kalıyor.';
@@ -928,6 +929,30 @@ function SceneSizeSection() {
   );
 }
 
+/** Sahnede ya da eleman listesinde seçilen alın panoları (seçim id'leri `fascia:` önekli). */
+function FasciaSelectionSection() {
+  const selection = useEditor((s) => s.selection);
+  const edges = useEditor((s) => s.design.fascia.edges);
+  const removeEntities = useEditor((s) => s.removeEntities);
+
+  const ids = useMemo(() => {
+    const sel = new Set(selection);
+    return edges.map(fasciaId).filter((id) => sel.has(id));
+  }, [selection, edges]);
+
+  if (!ids.length) return null;
+
+  return (
+    <section className="panel-section">
+      <h3 className="section-title">Seçim · {ids.length} m alın panosu</h3>
+      <button type="button" className="danger block-button" title="Seçili alın panolarını sil (Del)" onClick={() => removeEntities(ids)}>
+        <span>Sil</span>
+        <kbd>Del</kbd>
+      </button>
+    </section>
+  );
+}
+
 function FasciaSection() {
   const companyName = useEditor((s) => s.design.fascia.companyName);
   const edgeCount = useEditor((s) => s.design.fascia.edges.length);
@@ -1009,10 +1034,12 @@ export function PropertiesPanel() {
 
   return (
     <aside className="properties-panel" aria-label="Özellikler">
+      <SceneOutline />
       <h2 className="panel-title">Özellikler</h2>
       <FrameSection />
       <SelectionSection />
       <ItemSection />
+      <FasciaSelectionSection />
       <SceneSizeSection />
 
       <section className="panel-section">

@@ -183,9 +183,18 @@ type EditorState = {
   redo: () => void;
 };
 
+/**
+ * Alın panosu kenarlarının kalıcı id'si yok; seçimde kenar anahtarından türetilen id kullanılır.
+ * Sahnede ve eleman listesinde bir pano dizisi seçilince dizideki tüm kenarların id'si seçilir.
+ */
+export const fasciaId = (e: Edge) => `fascia:${edgeKey(e)}`;
+
 /** Geri al/yinele sonrası artık var olmayan elemanları seçimden çıkarır. */
 function keepExisting(selection: string[], design: StandDesign): string[] {
-  const ids = new Set([...design.walls, ...design.accessories, ...design.elements, ...design.graphics].map((e) => e.id));
+  const ids = new Set([
+    ...[...design.walls, ...design.accessories, ...design.elements, ...design.graphics].map((e) => e.id),
+    ...design.fascia.edges.map(fasciaId),
+  ]);
   return selection.filter((id) => ids.has(id));
 }
 
@@ -462,7 +471,9 @@ export const useEditor = create<EditorState>()((set, get) => {
       const { design } = get();
       const drop = new Set(edges.map(edgeKey));
       const kept = design.fascia.edges.filter((e) => !drop.has(edgeKey(e)));
-      if (kept.length !== design.fascia.edges.length) commit({ ...design, fascia: { ...design.fascia, edges: kept } });
+      if (kept.length === design.fascia.edges.length) return;
+      commit({ ...design, fascia: { ...design.fascia, edges: kept } });
+      set({ selection: keepExisting(get().selection, get().design) });
     },
 
     autoFascia: () => {
@@ -597,13 +608,16 @@ export const useEditor = create<EditorState>()((set, get) => {
         .filter((g) => !drop.has(g.id))
         .map((g) => ({ ...g, panelIds: g.panelIds.filter((id) => !drop.has(id)) }))
         .filter((g) => g.panelIds.length > 0);
+      const fasciaEdges = design.fascia.edges.filter((e) => !drop.has(fasciaId(e)));
       const removed =
         design.walls.length - walls.length +
         design.accessories.length - accessories.length +
         design.elements.length - elements.length +
-        design.graphics.length - graphics.length;
+        design.graphics.length - graphics.length +
+        design.fascia.edges.length - fasciaEdges.length;
       if (!removed) return;
-      commit({ ...design, walls, accessories, elements, graphics });
+      const fascia = fasciaEdges.length === design.fascia.edges.length ? design.fascia : { ...design.fascia, edges: fasciaEdges };
+      commit({ ...design, walls, accessories, elements, graphics, fascia });
       set({ selection: selection.filter((id) => !drop.has(id)) });
     },
 
