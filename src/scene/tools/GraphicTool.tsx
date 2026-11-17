@@ -4,7 +4,6 @@ import { Html, Line } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
   CARPET_THICKNESS,
-  PANEL_THICKNESS,
   POST_SIZE,
   cellKey,
   edgeCenter,
@@ -41,8 +40,8 @@ type Check =
 type Bounds = ReturnType<typeof sceneBounds>;
 
 const OVERLAY_Y = CARPET_THICKNESS + 0.003;
-/** Çerçeve hayaleti duvar ekseninden bu kadar dışarıda: panel yüzü + küçük pay. */
-const FACE_OFFSET = PANEL_THICKNESS / 2 + 0.004;
+/** Çerçeve hayaleti duvar ekseninden bu kadar dışarıda: çerçeve gibi dikmelerin önünde + küçük pay. */
+const FACE_OFFSET = POST_SIZE / 2 + 0.004;
 /** Sınır çizgisindeki köşe/kenarlar dışarıdan da yakalanabilsin diye zemin seçimi biraz taşar. */
 const PICK_MARGIN = 0.5;
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -243,8 +242,8 @@ function GhostFrame({ edges, side, height, color }: { edges: Edge[]; side: Side;
   // Dizinin ortası; yerel +x dizi boyunca uzanır.
   const cx = first.axis === 'x' ? first.x + n / 2 : first.x;
   const cz = first.axis === 'x' ? first.z : first.z + n / 2;
-  // Uçlardaki dikmelerin içine taşmasın
-  const width = n - POST_SIZE;
+  // Çerçeve dikmelerin önünde durduğu için hayalet de tam uzunlukta
+  const width = n;
   const zOff = side * FACE_OFFSET;
   const lz = side * (FACE_OFFSET + 0.001);
   const hw = width / 2;

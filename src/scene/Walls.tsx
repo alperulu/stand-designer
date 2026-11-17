@@ -102,6 +102,13 @@ function DoorPanel({ panel, side, height }: { panel: WallPanel; side: 1 | -1; he
 const PX_PER_M = 1000;
 const fmtM = (m: number) => String(Math.round(m * 100) / 100);
 const noRaycast = () => null;
+/**
+ * Giydirme yüzünün panel merkezinden uzaklığı: dikmelerin (POST_SIZE) önünde durur ki birden çok panele yayılan
+ * baskı, aradaki dikmelerle bölünmeden tek parça görünsün (gerdirme kumaş / kasalı baskı gibi).
+ */
+const FRAME_FACE = POST_SIZE / 2 + 0.002;
+const FRAME_DEPTH = FRAME_FACE - PANEL_THICKNESS / 2;
+const frameEdge = new THREE.MeshStandardMaterial({ color: '#f2f2f0', roughness: 0.8 });
 
 type FrameLayout = {
   cx: number;
@@ -191,7 +198,6 @@ function WallFrame({
   graphic,
   layout,
   src,
-  wallHeight,
   capturing,
   mode,
   handlers,
@@ -199,7 +205,6 @@ function WallFrame({
   graphic: Graphic;
   layout: FrameLayout;
   src: string | undefined;
-  wallHeight: number;
   capturing: boolean;
   mode: 'drop' | 'selected' | 'hover' | null;
   handlers: FrameHandlers;
@@ -209,14 +214,14 @@ function WallFrame({
   const userData = useMemo(() => ({ frameId: graphic.id }), [graphic.id]);
   const empty = !src;
 
-  // Dikmeler, alt ray ve üst kirişle örtülmeyen görünür alan (çizgiler bunun içinde kalır).
+  // Çerçeve dikme/ray/kirişin önünde olduğundan çizgi baskının kenarını izler.
   const outline = useMemo((): [number, number, number][] => {
-    const x = width / 2 - POST_SIZE / 2 - 0.004;
-    const y0 = 0.034;
-    const y1 = Math.min(height, wallHeight - BEAM_HEIGHT) - 0.004;
+    const x = width / 2 - 0.004;
+    const y0 = 0.004;
+    const y1 = height - 0.004;
     const z = 0.009;
     return [[-x, y0, z], [x, y0, z], [x, y1, z], [-x, y1, z], [-x, y0, z]];
-  }, [width, height, wallHeight]);
+  }, [width, height]);
 
   if (capturing && !texture) return null;
 
@@ -224,7 +229,13 @@ function WallFrame({
   return (
     <group position={[layout.cx, 0, layout.cz]} rotation={[0, layout.rotation, 0]}>
       {/* Yüz grubu: yerel +z giydirilen yüzden dışarı bakar */}
-      <group position={[0, 0, side * (PANEL_THICKNESS / 2)]} rotation={[0, side === 1 ? 0 : Math.PI, 0]}>
+      <group position={[0, 0, side * FRAME_FACE]} rotation={[0, side === 1 ? 0 : Math.PI, 0]}>
+        {texture && (
+          // Baskının kalınlığı: panel yüzünden dikmelerin önüne kadar uzanan kasa, yandan boşluk görünmesin
+          <mesh position={[0, height / 2, -FRAME_DEPTH / 2]} material={frameEdge} raycast={noRaycast} castShadow receiveShadow>
+            <boxGeometry args={[width, height, FRAME_DEPTH]} />
+          </mesh>
+        )}
         <mesh position={[0, height / 2, 0.0015]} userData={userData} receiveShadow={!!texture} {...handlers}>
           <planeGeometry args={[width, height]} />
           {texture ? (
@@ -386,7 +397,6 @@ export function Walls({ design }: { design: StandDesign }) {
             graphic={g}
             layout={layout}
             src={imageById(design, g.imageId)?.src}
-            wallHeight={h}
             capturing={capturing}
             mode={mode}
             handlers={
