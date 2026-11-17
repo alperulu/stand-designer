@@ -9,6 +9,14 @@ npm run dev        # http://localhost:5173
 npm run build      # dist/ — statik olarak barındırılabilir
 ```
 
+## Yayın (Netlify) ve giriş
+Site Netlify'da yayınlanır (`netlify.toml`). Tüm sayfalar `netlify/edge-functions/basic-auth.ts` ile HTTP Basic Auth arkasındadır.
+Kullanıcılar Netlify → **Project configuration → Environment variables** altında tanımlanır:
+```
+AUTH_USERS = kullanici1:sifre1,kullanici2:sifre2
+```
+Değişken yoksa site 503 döner. Kullanıcı eklemek/çıkarmak için değişkeni güncelleyip yeniden deploy etmek yeterli.
+
 ## Kısayollar
 | Tuş | İşlev |
 |---|---|
