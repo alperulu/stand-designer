@@ -34,6 +34,8 @@ export function Toolbar({ onExport, exporting }: { onExport: () => void; exporti
   const redo = useEditor((s) => s.redo);
   const showGrid = useEditor((s) => s.showGrid);
   const setShowGrid = useEditor((s) => s.setShowGrid);
+  const showFrame = useEditor((s) => s.showExportFrame);
+  const setShowFrame = useEditor((s) => s.setShowExportFrame);
   const unsaved = useEditor(hasUnsavedWork);
   const fileError = useProjectStatus((s) => s.error);
   const dismissError = useProjectStatus((s) => s.dismiss);
@@ -98,6 +100,10 @@ export function Toolbar({ onExport, exporting }: { onExport: () => void; exporti
       <label className="check" title="Grid (G)">
         <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
         Grid
+      </label>
+      <label className="check" title="16:9 export alanını göster">
+        <input type="checkbox" checked={showFrame} onChange={(e) => setShowFrame(e.target.checked)} />
+        Kadraj
       </label>
       <ExportControls />
       <button type="button" className="primary" onClick={onExport} disabled={exporting} aria-busy={exporting}>

@@ -215,7 +215,7 @@ export const useEditor = create<EditorState>()((set, get) => {
     exportSizeIndex: 0,
     exportFormat: 'png',
     exportBackground: 'hall',
-    showExportFrame: true,
+    showExportFrame: false,
     capture: null,
     savedDesign: null,
     viewRequest: { preset: 'perspective', nonce: 0 },

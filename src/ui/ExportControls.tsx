@@ -7,18 +7,16 @@ const FORMATS: ExportFormat[] = ['png', 'jpg'];
 const BACKGROUNDS: ExportBackground[] = ['hall', 'white', 'transparent'];
 
 /**
- * Export ayarları (FR-10.2–10.5): boyut, biçim, arka plan, kadraj kılavuzu.
+ * Export ayarları (FR-10.2–10.5): boyut, biçim, arka plan. (Kadraj kılavuzu araç çubuğunda, Grid'in yanında.)
  * Araç çubuğunda yer kaplamasın diye özet gösteren tek düğme + açılır panel.
  */
 export function ExportControls() {
   const sizeIndex = useEditor((s) => s.exportSizeIndex);
   const format = useEditor((s) => s.exportFormat);
   const background = useEditor((s) => s.exportBackground);
-  const showFrame = useEditor((s) => s.showExportFrame);
   const setSizeIndex = useEditor((s) => s.setExportSizeIndex);
   const setFormat = useEditor((s) => s.setExportFormat);
   const setBackground = useEditor((s) => s.setExportBackground);
-  const setShowFrame = useEditor((s) => s.setShowExportFrame);
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const size = EXPORT_SIZES[sizeIndex] ?? EXPORT_SIZES[0];
@@ -102,10 +100,6 @@ export function ExportControls() {
             </select>
           </label>
           {format === 'jpg' && <p className="export-hint">Şeffaf arka plan yalnızca PNG'de.</p>}
-          <label className="check export-frame-toggle">
-            <input type="checkbox" checked={showFrame} onChange={(e) => setShowFrame(e.target.checked)} />
-            Kadraj (16:9 export alanı)
-          </label>
         </div>
       )}
     </div>
